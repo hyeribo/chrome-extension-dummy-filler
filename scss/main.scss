@@ -1,0 +1,41 @@
+body {
+  background: #fff;
+  width: 300px;
+  height: auto;
+  font-family: "Roboto";
+  margin: 0;
+  padding: 20px;
+  border: 1px solid lightgray;
+
+  .df {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    &__btn-container {
+      display: inline-flex;
+      flex-direction: row;
+      gap: 10px;
+      align-items: center;
+    }
+    &__btn {
+      height: 30px;
+      width: 140px;
+      border: none;
+      border-radius: 5px;
+      font-size: 15px;
+      color: #fff;
+      cursor: pointer;
+      background: #007bff;
+    }
+    &__msg {
+      color: #007bff;
+      font-size: 14px;
+      margin: 6px 0 12px;
+    }
+  }
+
+  .display-none {
+    display: none;
+  }
+}

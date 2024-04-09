@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="main.css" rel="stylesheet" />
+    <script src="main.js" type="module"></script>
+  </head>
+  <body>
+    <!-- <h1>Dummy Filler</h1> -->
+    <div class="df__btn-container">
+      <button
+        type="button"
+        id="df__btn--select-area"
+        class="df__btn df__btn--select-area display-none"
+      >
+        Select scan area
+      </button>
+      <button
+        type="button"
+        id="df__btn--clear-area"
+        class="df__btn df__btn--select-area display-none"
+      >
+        Clear scan area
+      </button>
+    </div>
+    <p class="df__msg df__msg--select-area"></p>
+
+    <div class="df__btn-container">
+      <button
+        type="button"
+        id="df__btn--scan-items"
+        class="df__btn df__btn--scan-items"
+      >
+        Find form items
+      </button>
+      <button
+        type="button"
+        id="df__btn--clear-items"
+        class="df__btn df__btn--clear-items"
+      >
+        Clear items
+      </button>
+    </div>
+
+    <p class="df__msg df__msg--scan-result"></p>
+
+    <div class="df__form-items"></div>
+
+    <h3 class="df__error-msg" id="df__error-msg"></h3>
+
+    <div style="height: 100px"></div>
+  </body>
+</html>
