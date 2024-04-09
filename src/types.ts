@@ -13,3 +13,7 @@ export interface Item {
   type: ElementType;
   valueSetType: ValueSetType;
 }
+
+export interface InputItem {
+  [attr: string]: string;
+}

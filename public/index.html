@@ -10,14 +10,14 @@
       <button
         type="button"
         id="df__btn--select-area"
-        class="df__btn df__btn--select-area display-none"
+        class="df__btn df__btn--primary display-none"
       >
         Select scan area
       </button>
       <button
         type="button"
         id="df__btn--clear-area"
-        class="df__btn df__btn--select-area display-none"
+        class="df__btn display-none"
       >
         Clear scan area
       </button>
@@ -28,7 +28,7 @@
       <button
         type="button"
         id="df__btn--scan-items"
-        class="df__btn df__btn--scan-items"
+        class="df__btn df__btn--primary df__btn--scan-items"
       >
         Find form items
       </button>
@@ -40,13 +40,21 @@
         Clear items
       </button>
     </div>
-
     <p class="df__msg df__msg--scan-result"></p>
 
-    <div class="df__form-items"></div>
+    <div id="df__form-items"></div>
 
-    <h3 class="df__error-msg" id="df__error-msg"></h3>
-
-    <div style="height: 100px"></div>
+    <!-- <div class="df__template--form-group">
+      <div class="df__form-group">
+        <label>label: </label>
+        <div class="df__form-item-wrapper">
+          <select>
+            <option value="auto">auto</option>
+            <option value="fixed">fixed</option>
+          </select>
+          <input />
+        </div>
+      </div>
+    </div> -->
   </body>
 </html>

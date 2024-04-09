@@ -6,6 +6,7 @@ body {
   margin: 0;
   padding: 20px;
   border: 1px solid lightgray;
+  color: #333;
 
   .df {
     display: flex;
@@ -21,17 +22,43 @@ body {
     &__btn {
       height: 30px;
       width: 140px;
-      border: none;
       border-radius: 5px;
-      font-size: 15px;
-      color: #fff;
+      border: 1px solid #666;
+      background: #fff;
+      color: #666;
       cursor: pointer;
-      background: #007bff;
+      &--primary {
+        border: 1px solid #007bff;
+        background: #007bff;
+        color: #fff;
+      }
     }
     &__msg {
       color: #007bff;
       font-size: 14px;
       margin: 6px 0 12px;
+    }
+    &__form-group {
+      & > label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+    }
+    &__form-item-wrapper {
+      display: flex;
+      gap: 4px;
+      height: 30px;
+      & > select {
+        min-width: 90px;
+        border-radius: 8px;
+        border: 1px solid #666;
+      }
+      & > input {
+        flex: 1;
+        border-radius: 8px;
+        border: 1px solid #666;
+      }
     }
   }
 
