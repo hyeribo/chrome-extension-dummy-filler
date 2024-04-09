@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import _ from "lodash";
 
 import { Item, InputItem } from "./types";
+// import form
 
 class Main {
   tabId?: number;
@@ -10,6 +11,7 @@ class Main {
   scanArea: string = "";
   isScanAreaSet: boolean = false;
   $cheerio!: cheerio.Root;
+  $parent!: cheerio.Root;
 
   constructor() {
     this.init();
@@ -20,6 +22,8 @@ class Main {
     chrome.runtime.onMessage.addListener((message, sender) =>
       this.handleReceivedMessage(message, sender)
     );
+    this.$cheerio = cheerio.load(document.body.innerHTML);
+
     await this.setTabId();
     this.loadSelectedScanArea();
     this.addEventListeners();
@@ -67,11 +71,11 @@ class Main {
     $("#df__btn--clear-area").on("click", () => this.handleClearScanArea());
     $("#df__btn--scan-items").on("click", () => this.handleScanItems());
     $("#df__btn--clear-items").on("click", () => this.clearItems());
+    $("#df__form-items").on("change", (e) => this.handleChangeItemValue(e));
   }
 
   scanItems() {
-    console.log("this", this);
-    const inputItems: cheerio.Cheerio = this.$cheerio("input");
+    const inputItems: cheerio.Cheerio = this.$parent("input");
     const validItems: any[] = [];
 
     const isTagElement = (element: any): element is cheerio.TagElement => {
@@ -87,7 +91,7 @@ class Main {
       }
     });
 
-    console.log("inputItems", inputItems.length);
+    console.log("inputItems", inputItems);
     console.log("validItems", validItems.length, validItems);
     this.setItems(validItems);
   }
@@ -136,24 +140,35 @@ class Main {
     }
   }
 
-  generateTextInput(name: string) {
-    console.log("generateTextInput =====>", name);
-    if (!name) return;
+  generateTextInput(inputItem: InputItem) {
+    if (!inputItem.name) return;
+
+    const formItemByType: any = {
+      text: `<input type="text" />`,
+      number: `<input type="number" />`,
+      date: `<input type="date" />`,
+    };
+
     const formGroup = `
       <div class="df__form-group">
-        <label>${name}: </label>
+        <label>${inputItem.name}: (${inputItem.type})</label>
         <div class="df__form-item-wrapper">
-          <select name="valueSetType-${name}">
+          <select class="df__value-set-type" name="valueSetType-${
+            inputItem.name
+          }">
             <option value="auto" selected>auto</option>
             <option value="fixed">fixed</option>
           </select>
-          <input />
+          ${formItemByType[inputItem.type] || formItemByType.text}
         </div>
       </div>
     `;
 
-    console.log("df__form-items", this.$cheerio("#df__form-items"));
-    this.$cheerio("#df__form-items").text(formGroup);
+    $("#df__form-items").append(formGroup);
+  }
+
+  handleChangeItemValue(e: JQuery.Event) {
+    console.log("form item changed ===>", e);
   }
 
   setScanArea(scanArea: string) {
@@ -173,13 +188,12 @@ class Main {
   }
 
   setItems(items: any[]) {
-    console.log("setItems", items);
     this.items = items;
     $(".df__msg--scan-result").text(`Number of items: ${items.length}`);
 
-    if (this.items.length) {
-      this.generateTextInput(this.items[0].name);
-    }
+    this.items.forEach?.((item) => {
+      this.generateTextInput(item);
+    });
     this.save();
   }
 
@@ -214,7 +228,7 @@ class Main {
       } else {
         this.clearScanArea();
       }
-      this.$cheerio = cheerio.load(message.innerHTML);
+      this.$parent = cheerio.load(message.innerHTML);
       this.loadSyncData();
     } else if (message.type === "SET_SCAN_AREA") {
       if (!message.innerHTML) return;
@@ -222,8 +236,8 @@ class Main {
         target: { tabId: sender.tab.id },
         files: ["df-hover.css"],
       });
-      this.$cheerio = cheerio.load(this.scanArea);
       this.setScanArea(message.innerHTML);
+      this.$parent = cheerio.load(message.innerHTML);
     } else if (message.type === "CLEAR_SCAN_AREA") {
       this.clearScanArea();
     } else if (message.type === "SCAN_ITEMS") {
@@ -231,8 +245,7 @@ class Main {
       if (!this.isScanAreaSet) {
         this.scanArea = message.innerHTML;
       }
-
-      this.$cheerio = cheerio.load(this.scanArea);
+      this.$parent = cheerio.load(message.innerHTML);
       this.scanItems();
     }
   }
