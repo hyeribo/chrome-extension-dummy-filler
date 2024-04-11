@@ -131,7 +131,12 @@ class Main {
     e: JQuery.ChangeEvent<HTMLElement, undefined, HTMLElement, HTMLElement>
   ) {
     console.log("form item changed ===>", e);
-    console.log(e.target.dataset.valueSetTypeIndex);
+    const changedItemIndex = e.target.dataset.valueSetTypeIndex;
+    if (!changedItemIndex) return;
+    const index = +changedItemIndex;
+    console.log("form item changed index ===>", index);
+    // console.log("form item changed ===> value", e.target.value);
+    // items[index].name
   }
 
   setScanArea(scanArea: string) {
