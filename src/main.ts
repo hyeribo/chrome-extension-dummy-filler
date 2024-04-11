@@ -127,8 +127,11 @@ class Main {
     }
   }
 
-  handleChangeItemValue(e: JQuery.Event) {
+  handleChangeItemValue(
+    e: JQuery.ChangeEvent<HTMLElement, undefined, HTMLElement, HTMLElement>
+  ) {
     console.log("form item changed ===>", e);
+    console.log(e.target.dataset.valueSetTypeIndex);
   }
 
   setScanArea(scanArea: string) {
@@ -153,16 +156,19 @@ class Main {
     this.items = items;
     $(".df__msg--scan-result").text(`Number of items: ${items.length}`);
 
-    this.items.forEach?.((item: ReturnInputItemByType<ElementType>) => {
-      const inputString = generateInputString(item);
-      $("#df__form-items").append(inputString);
-    });
+    this.items.forEach?.(
+      (item: ReturnInputItemByType<ElementType>, i: number) => {
+        const inputString = generateInputString(item, i);
+        $("#df__form-items").append(inputString);
+      }
+    );
     this.save();
   }
 
   clearItems() {
     this.items = [];
     $(".df__msg--scan-result").text("Number of items: 0");
+    $("#df__form-items").empty();
     this.save();
   }
 
@@ -209,7 +215,7 @@ class Main {
       if (!this.isScanAreaSet) {
         this.scanArea = message.innerHTML;
       }
-      this.$parent = cheerio.load(message.innerHTML);
+      this.$parent = cheerio.load(this.scanArea);
       this.scanItems();
     }
   }

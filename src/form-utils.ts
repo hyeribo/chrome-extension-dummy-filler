@@ -1,3 +1,5 @@
+import { isNil } from "lodash";
+
 import {
   ElementType,
   Labels,
@@ -37,7 +39,7 @@ export const parseFormItem = ({
       return acc;
     }, {});
 
-  const radioIndexMap: { [name: string]: number } = {};
+  const itemIndexMap: { [name: string]: number } = {};
   inputs.toArray().forEach((element: cheerio.Element): void => {
     if (isInputElement(element)) {
       const { attribs } = element;
@@ -55,8 +57,8 @@ export const parseFormItem = ({
             ...attribs,
           },
         };
-        if (radioIndexMap[name] === undefined) {
-          radioIndexMap[name] = validItems.length;
+        if (itemIndexMap[name] === undefined) {
+          itemIndexMap[name] = validItems.length;
           validItems.push({
             type,
             name,
@@ -66,20 +68,23 @@ export const parseFormItem = ({
             options: [radioOption],
           });
         } else {
-          const index = radioIndexMap[name];
+          const index = itemIndexMap[name];
           (validItems[index] as InputRadio).options.push(radioOption);
         }
       } else {
-        validItems.push({
-          type: type as Exclude<ElementType, "radio">,
-          name,
-          valueSetType: "auto",
-          isUsed: true,
-          label,
-          inputProps: {
-            ...attribs,
-          },
-        });
+        if (isNil(itemIndexMap[name])) {
+          itemIndexMap[name] = validItems.length;
+          validItems.push({
+            type: type as Exclude<ElementType, "radio">,
+            name,
+            valueSetType: "auto",
+            isUsed: true,
+            label,
+            inputProps: {
+              ...attribs,
+            },
+          });
+        }
       }
     }
   });
@@ -100,7 +105,6 @@ const generateRadioString = (inputRadio: InputRadio) => {
 };
 
 const generateCheckboxString = (checkbox: InputCheckbox) => {
-  console.log("checkbox", checkbox);
   const checkboxString = `
     <div class="df__checkbox-group">
       <input type="checkbox" id="${checkbox.inputProps.id}" name="${checkbox.inputProps.name}" value="${checkbox.inputProps.value}" />
@@ -111,7 +115,8 @@ const generateCheckboxString = (checkbox: InputCheckbox) => {
 };
 
 export const generateInputString = (
-  input: ReturnInputItemByType<ElementType>
+  input: ReturnInputItemByType<ElementType>,
+  index: number
 ): string => {
   if (!input.name) return "";
 
@@ -128,10 +133,10 @@ export const generateInputString = (
     generatorByType[input.type]?.(input) ?? generatorByType["text"]!();
 
   const formGroupString = `
-    <div class="df__form-group">
+    <div data-index="${index}" class="df__form-group">
       <label title="${input.name} (${input.type})">${input.label} (${input.type})</label>
       <div class="df__form-item-wrapper">
-        <select class="df__value-set-type" name="valueSetType-${input.name}">
+        <select data-value-set-type-index="${index}" class="df__value-set-type" name="valueSetType-${input.name}">
           <option value="auto" selected>auto</option>
           <option value="fixed">fixed</option>
         </select>
