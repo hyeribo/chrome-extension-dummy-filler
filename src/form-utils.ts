@@ -1,17 +1,144 @@
-const isTagElement = (element: any): element is cheerio.TagElement => {
-  return element?.attribs !== undefined;
+import {
+  ElementType,
+  Labels,
+  ReturnInputItemByType,
+  InputRadio,
+  InputRadioOption,
+  InputCheckbox,
+  TypeDictionary,
+} from "./types";
+
+const isInputElement = (element: any): element is cheerio.TagElement => {
+  return !!element?.attribs?.type && !!element?.attribs?.name;
 };
 
-export const parseFormItem = (inputItems: cheerio.Cheerio) => {
-  console.log("");
-  const validItems: any[] = [];
+const isLabelElement = (element: any): element is cheerio.TagElement => {
+  return element.name === "label" && !!element?.attribs?.for;
+};
 
-  inputItems.toArray().map((element: cheerio.Element) => {
-    if (isTagElement(element)) {
-      const attr = element.attribs;
-      if (attr.name) {
-        validItems.push({ ...attr });
+export const parseFormItem = ({
+  inputs,
+  labels,
+}: {
+  inputs: cheerio.Cheerio;
+  labels: cheerio.Cheerio;
+}): ReturnInputItemByType<ElementType>[] => {
+  const validItems: ReturnInputItemByType<ElementType>[] = [];
+  const validLabels: Labels = labels
+    .toArray()
+    .reduce((acc: Labels, element: cheerio.Element): Labels => {
+      if (isLabelElement(element)) {
+        const { attribs, children } = element;
+        acc[attribs.for] = attribs.for;
+        if (typeof children?.[0]?.data === "string") {
+          acc[attribs.for] = children?.[0]?.data;
+        }
+      }
+      return acc;
+    }, {});
+
+  const radioIndexMap: { [name: string]: number } = {};
+  inputs.toArray().forEach((element: cheerio.Element): void => {
+    if (isInputElement(element)) {
+      const { attribs } = element;
+      const { name, type } = attribs;
+      const label = validLabels[name] || name;
+
+      if (type === "radio") {
+        const radioOption: InputRadioOption = {
+          type: "radio",
+          name,
+          label: `${validLabels[attribs.id] || attribs.name} (${
+            attribs.value
+          })`,
+          inputProps: {
+            ...attribs,
+          },
+        };
+        if (radioIndexMap[name] === undefined) {
+          radioIndexMap[name] = validItems.length;
+          validItems.push({
+            type,
+            name,
+            valueSetType: "auto",
+            isUsed: true,
+            label: name,
+            options: [radioOption],
+          });
+        } else {
+          const index = radioIndexMap[name];
+          (validItems[index] as InputRadio).options.push(radioOption);
+        }
+      } else {
+        validItems.push({
+          type: type as Exclude<ElementType, "radio">,
+          name,
+          valueSetType: "auto",
+          isUsed: true,
+          label,
+          inputProps: {
+            ...attribs,
+          },
+        });
       }
     }
   });
+  return validItems;
+};
+
+const generateRadioString = (inputRadio: InputRadio) => {
+  let inputRadioString = "";
+  inputRadio.options.forEach((option) => {
+    inputRadioString += `
+      <div class="df__radio-group">
+        <input type="radio" id="${option.inputProps.id}" name="${option.inputProps.name}" value="${option.inputProps.value}" />
+        <label for="${option.inputProps.id}">${option.label}</label>
+      </div>
+    `;
+  });
+  return inputRadioString;
+};
+
+const generateCheckboxString = (checkbox: InputCheckbox) => {
+  console.log("checkbox", checkbox);
+  const checkboxString = `
+    <div class="df__checkbox-group">
+      <input type="checkbox" id="${checkbox.inputProps.id}" name="${checkbox.inputProps.name}" value="${checkbox.inputProps.value}" />
+      <label for="${checkbox.inputProps.id}">${checkbox.label}</label>
+    </div>
+  `;
+  return checkboxString;
+};
+
+export const generateInputString = (
+  input: ReturnInputItemByType<ElementType>
+): string => {
+  if (!input.name) return "";
+
+  const generatorByType: TypeDictionary<(arg?: any) => string> = {
+    text: () => `<input type="text" />`,
+    number: () => `<input type="number" />`,
+    date: () => `<input type="date" />`,
+    time: () => `<input type="time" />`,
+    radio: generateRadioString,
+    checkbox: generateCheckboxString,
+  };
+
+  const inputString =
+    generatorByType[input.type]?.(input) ?? generatorByType["text"]!();
+
+  const formGroupString = `
+    <div class="df__form-group">
+      <label title="${input.name} (${input.type})">${input.label} (${input.type})</label>
+      <div class="df__form-item-wrapper">
+        <select class="df__value-set-type" name="valueSetType-${input.name}">
+          <option value="auto" selected>auto</option>
+          <option value="fixed">fixed</option>
+        </select>
+        ${inputString}
+      </div>
+    </div>
+  `;
+
+  return formGroupString;
 };

@@ -2,15 +2,14 @@ import $ from "jquery";
 import * as cheerio from "cheerio";
 import _ from "lodash";
 
-import { Item, InputItem } from "./types";
-// import form
+import { ElementType, ReturnInputItemByType } from "./types";
+import { parseFormItem, generateInputString } from "./form-utils";
 
 class Main {
   tabId?: number;
-  items: InputItem[] = [];
+  items: ReturnInputItemByType<ElementType>[] = [];
   scanArea: string = "";
   isScanAreaSet: boolean = false;
-  $cheerio!: cheerio.Root;
   $parent!: cheerio.Root;
 
   constructor() {
@@ -18,13 +17,12 @@ class Main {
   }
 
   async init() {
+    await this.setTabId();
     chrome.runtime.connect({ name: "popup" });
     chrome.runtime.onMessage.addListener((message, sender) =>
       this.handleReceivedMessage(message, sender)
     );
-    this.$cheerio = cheerio.load(document.body.innerHTML);
 
-    await this.setTabId();
     this.loadSelectedScanArea();
     this.addEventListeners();
   }
@@ -75,24 +73,13 @@ class Main {
   }
 
   scanItems() {
-    const inputItems: cheerio.Cheerio = this.$parent("input");
-    const validItems: any[] = [];
+    const inputs: cheerio.Cheerio = this.$parent("input");
+    const labels: cheerio.Cheerio = this.$parent("label");
 
-    const isTagElement = (element: any): element is cheerio.TagElement => {
-      return element?.attribs !== undefined;
-    };
-
-    inputItems.toArray().map((element: cheerio.Element) => {
-      if (isTagElement(element)) {
-        const attr = element.attribs;
-        if (attr.name) {
-          validItems.push({ ...attr });
-        }
-      }
+    const validItems: ReturnInputItemByType<ElementType>[] = parseFormItem({
+      inputs,
+      labels,
     });
-
-    console.log("inputItems", inputItems);
-    console.log("validItems", validItems.length, validItems);
     this.setItems(validItems);
   }
 
@@ -140,33 +127,6 @@ class Main {
     }
   }
 
-  generateTextInput(inputItem: InputItem) {
-    if (!inputItem.name) return;
-
-    const formItemByType: any = {
-      text: `<input type="text" />`,
-      number: `<input type="number" />`,
-      date: `<input type="date" />`,
-    };
-
-    const formGroup = `
-      <div class="df__form-group">
-        <label>${inputItem.name}: (${inputItem.type})</label>
-        <div class="df__form-item-wrapper">
-          <select class="df__value-set-type" name="valueSetType-${
-            inputItem.name
-          }">
-            <option value="auto" selected>auto</option>
-            <option value="fixed">fixed</option>
-          </select>
-          ${formItemByType[inputItem.type] || formItemByType.text}
-        </div>
-      </div>
-    `;
-
-    $("#df__form-items").append(formGroup);
-  }
-
   handleChangeItemValue(e: JQuery.Event) {
     console.log("form item changed ===>", e);
   }
@@ -187,12 +147,15 @@ class Main {
     $(".df__msg--select-area").text("Scan area not set.");
   }
 
-  setItems(items: any[]) {
+  setItems(items: ReturnInputItemByType<ElementType>[]) {
+    console.log("setItems ==>", items);
+
     this.items = items;
     $(".df__msg--scan-result").text(`Number of items: ${items.length}`);
 
-    this.items.forEach?.((item) => {
-      this.generateTextInput(item);
+    this.items.forEach?.((item: ReturnInputItemByType<ElementType>) => {
+      const inputString = generateInputString(item);
+      $("#df__form-items").append(inputString);
     });
     this.save();
   }
@@ -222,6 +185,7 @@ class Main {
   }
 
   handleReceivedMessage(message: any, sender: any) {
+    console.log("handleReceivedMessage");
     if (message.type === "LOAD_SCAN_AREA") {
       if (message.isScanAreaSet) {
         this.setScanArea(message.innerHTML);
@@ -252,7 +216,8 @@ class Main {
 
   save() {
     chrome.storage.sync.set({
-      items: this.items,
+      items: [],
+      // items: this.items,
     });
   }
 }

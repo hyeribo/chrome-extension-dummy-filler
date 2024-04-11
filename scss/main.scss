@@ -61,6 +61,15 @@ body {
         border: 1px solid #999;
       }
     }
+    &__checkbox-group,
+    &__radio-group {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    &__scan-options {
+      margin-bottom: 5px;
+    }
   }
 
   .display-none {
