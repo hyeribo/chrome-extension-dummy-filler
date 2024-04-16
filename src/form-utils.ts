@@ -134,7 +134,10 @@ export const generateInputString = (
 
   const formGroupString = `
     <div data-index="${index}" class="df__form-group">
-      <label title="${input.name} (${input.type})">${input.label} (${input.type})</label>
+      <div class="df__form-group__title">
+        <label title="${input.name}">${input.label}</label>
+        <span class="df__form-group__type">(${input.type})</span>
+      </div>
       <div class="df__form-item-wrapper">
         <select data-value-set-type-index="${index}" class="df__value-set-type" name="valueSetType-${input.name}">
           <option value="auto" selected>auto</option>

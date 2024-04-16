@@ -20,7 +20,7 @@ body {
     font-weight: 600;
   }
   .display-none {
-    display: none;
+    display: none !important;
   }
 
   .df {
@@ -69,25 +69,42 @@ body {
     }
     &__form-group {
       margin-bottom: 12px;
-      & > label {
-        display: block;
-        font-size: 14px;
+      &__title {
         margin-bottom: 5px;
+        & > label {
+          display: inline-block;
+          font-size: 14px;
+          background-color: #c4e1ff;
+          border-radius: 6px;
+          padding: 1px 4px 2px;
+          max-width: 150px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+      &__type {
+        vertical-align: super;
       }
     }
     &__form-item-wrapper {
       display: flex;
       gap: 4px;
       height: 30px;
-      & > select.df__value-set-type {
+      & > select {
         min-width: 60px;
         border-radius: 6px;
         border: 1px solid #999;
+        &:focus {
+          outline: 1px solid #007bff;
+        }
       }
       & > input {
         width: 150px;
         border-radius: 6px;
         border: 1px solid #999;
+        &:focus {
+          outline: 1px solid #007bff;
+        }
       }
     }
     &__checkbox-group,
