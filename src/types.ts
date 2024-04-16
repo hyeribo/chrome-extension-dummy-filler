@@ -1,3 +1,13 @@
+export type ActionType =
+  | "POPUP/START_SELECT_AREA"
+  | "POPUP/FINISH_SELECT_AREA"
+  | "POPUP/CLEAR_AREA"
+  | "POPUP/SCAN_ITEMS"
+  | "POPUP/SET_SCANNED_ITEMS"
+  | "POPUP/CLEAR_ITEMS"
+  | "POPUP/GENERATE"
+  | "POPUP/APPLY";
+
 export type ElementType =
   | "text"
   | "number"

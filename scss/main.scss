@@ -8,6 +8,21 @@ body {
   border: 1px solid lightgray;
   color: #333;
 
+  h1 {
+    margin: 0;
+    font-size: 20px;
+  }
+  h2 {
+    margin: 0;
+    font-size: 14px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  .display-none {
+    display: none;
+  }
+
   .df {
     display: flex;
     flex-direction: column;
@@ -18,6 +33,12 @@ body {
       flex-direction: row;
       gap: 10px;
       align-items: center;
+      &--inline {
+        display: inline-flex;
+      }
+      &--apply {
+        margin-top: 10px;
+      }
     }
     &__btn {
       height: 30px;
@@ -31,6 +52,14 @@ body {
         border: 1px solid #007bff;
         background: #007bff;
         color: #fff;
+      }
+      &.active {
+        border: 1px solid #025bbb;
+        background: #025bbb;
+      }
+      &:disabled {
+        opacity: 0.6;
+        cursor: unset;
       }
     }
     &__msg {
@@ -70,9 +99,5 @@ body {
     &__scan-options {
       margin-bottom: 5px;
     }
-  }
-
-  .display-none {
-    display: none;
   }
 }
