@@ -27,7 +27,7 @@ class Main {
     this.$itemContainer = $("#df__form-items");
     this.addEventListeners();
     this.dispatchLoadScanArea();
-    this.loadSyncData();
+    this.loadStorageData();
   }
 
   async setTabId() {
@@ -48,12 +48,12 @@ class Main {
     $("#df__form-items").on("change", (e) => this.handleChangeItemValue(e));
   }
 
-  async loadSyncData() {
-    const syncData = await chrome.storage.sync.get({
+  async loadStorageData() {
+    const storageData = await chrome.storage.local.get({
       items: [],
     });
-    console.log("syncData", syncData);
-    const { items } = syncData;
+    console.log("storageData", storageData);
+    const { items } = storageData;
     this.items = items;
     if (items.length > 0) {
       this.changeViewByAction({ type: "POPUP/SET_SCANNED_ITEMS" });
@@ -61,9 +61,8 @@ class Main {
   }
 
   save() {
-    chrome.storage.sync.set({
-      items: [],
-      // items: this.items,
+    chrome.storage.local.set({
+      items: this.items,
     });
   }
 
