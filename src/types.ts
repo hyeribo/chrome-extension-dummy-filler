@@ -11,11 +11,11 @@ export type ActionType =
 export type ElementType =
   | "text"
   | "number"
-  | "select"
+  | "date"
+  | "time"
   | "radio"
   | "checkbox"
-  | "date"
-  | "time";
+  | "select";
 
 export type TypeDictionary<T> = {
   [type in ElementType]?: T;
@@ -42,9 +42,17 @@ export interface InputRadioOption {
   };
 }
 
+export interface InputSelectOption {
+  name: string;
+  label?: string;
+  value?: any;
+}
+
 export interface InputText extends InputItem<"text"> {}
 export interface InputNumber extends InputItem<"number"> {}
-export interface InputSelect extends InputItem<"select"> {}
+export interface InputSelect extends InputItem<"select"> {
+  options: InputSelectOption[];
+}
 export interface InputRadio extends Omit<InputItem<"radio">, "inputProps"> {
   options: InputRadioOption[];
 }

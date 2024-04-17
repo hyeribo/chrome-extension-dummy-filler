@@ -9,7 +9,7 @@ chrome.runtime.onConnect.addListener((port) => {
       if (tabId) {
         chrome.scripting.removeCSS({
           target: { tabId },
-          files: ["inject.css"],
+          files: ["df-hover.css", "df-inject.css"],
         });
       }
     });

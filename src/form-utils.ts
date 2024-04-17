@@ -7,11 +7,20 @@ import {
   InputRadio,
   InputRadioOption,
   InputCheckbox,
+  InputSelect,
   TypeDictionary,
 } from "./types";
 
 const isInputElement = (element: any): element is cheerio.TagElement => {
-  return !!element?.attribs?.type && !!element?.attribs?.name;
+  return (
+    element.name === "input" &&
+    !!element?.attribs?.type &&
+    !!element?.attribs?.name
+  );
+};
+
+const isSelectElement = (element: any): element is cheerio.TagElement => {
+  return element.name === "select" && !!element?.attribs?.name;
 };
 
 const isLabelElement = (element: any): element is cheerio.TagElement => {
@@ -75,7 +84,7 @@ export const parseFormItem = ({
         if (isNil(itemIndexMap[name])) {
           itemIndexMap[name] = validItems.length;
           validItems.push({
-            type: type as Exclude<ElementType, "radio">,
+            type: type as Exclude<ElementType, "radio" | "select">,
             name,
             valueSetType: "auto",
             isUsed: true,
@@ -86,6 +95,30 @@ export const parseFormItem = ({
           });
         }
       }
+    }
+    if (isSelectElement(element)) {
+      const { attribs, children } = element;
+      const { name } = attribs;
+      const label = validLabels[name] || name;
+
+      const options = (children as cheerio.TagElement[]).map((child) => {
+        return {
+          name,
+          label: child.children?.[0]?.data,
+          value: child.attribs?.value,
+        };
+      });
+      validItems.push({
+        type: "select",
+        name,
+        valueSetType: "auto",
+        isUsed: true,
+        label,
+        inputProps: {
+          ...attribs,
+        },
+        options,
+      });
     }
   });
   return validItems;
@@ -114,6 +147,17 @@ const generateCheckboxString = (checkbox: InputCheckbox) => {
   return checkboxString;
 };
 
+const generateSelectString = (select: InputSelect) => {
+  let selectString = "<select>";
+  select.options.forEach((option) => {
+    selectString += `
+      <option value="${option.value}">${option.label}</option>
+    `;
+  });
+  selectString += "</select>";
+  return selectString;
+};
+
 export const generateInputString = (
   input: ReturnInputItemByType<ElementType>,
   index: number
@@ -127,6 +171,7 @@ export const generateInputString = (
     time: () => `<input type="time" />`,
     radio: generateRadioString,
     checkbox: generateCheckboxString,
+    select: generateSelectString,
   };
 
   const inputString =

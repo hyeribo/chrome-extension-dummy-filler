@@ -91,11 +91,17 @@ body {
       gap: 4px;
       height: 30px;
       & > select {
-        min-width: 60px;
+        width: 150px;
+        max-width: 150px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         border-radius: 6px;
         border: 1px solid #999;
         &:focus {
           outline: 1px solid #007bff;
+        }
+        &.df__value-set-type {
+          max-width: 60px;
         }
       }
       & > input {

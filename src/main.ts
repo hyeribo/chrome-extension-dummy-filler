@@ -131,7 +131,7 @@ class Main {
   }
 
   handleScanItems() {
-    const inputs: cheerio.Cheerio = this.$parent("input");
+    const inputs: cheerio.Cheerio = this.$parent("input,select");
     const labels: cheerio.Cheerio = this.$parent("label");
     const validItems: ReturnInputItemByType<ElementType>[] = parseFormItem({
       inputs,
