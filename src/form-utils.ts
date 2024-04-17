@@ -4,6 +4,7 @@ import {
   ElementType,
   Labels,
   ReturnInputItemByType,
+  InputText,
   InputRadio,
   InputRadioOption,
   InputCheckbox,
@@ -69,6 +70,7 @@ export const parseFormItem = ({
         if (itemIndexMap[name] === undefined) {
           itemIndexMap[name] = validItems.length;
           validItems.push({
+            index: validItems.length,
             type,
             name,
             valueSetType: "auto",
@@ -84,6 +86,7 @@ export const parseFormItem = ({
         if (isNil(itemIndexMap[name])) {
           itemIndexMap[name] = validItems.length;
           validItems.push({
+            index: validItems.length,
             type: type as Exclude<ElementType, "radio" | "select">,
             name,
             valueSetType: "auto",
@@ -109,6 +112,7 @@ export const parseFormItem = ({
         };
       });
       validItems.push({
+        index: validItems.length,
         type: "select",
         name,
         valueSetType: "auto",
@@ -124,9 +128,25 @@ export const parseFormItem = ({
   return validItems;
 };
 
-const generateRadioString = (inputRadio: InputRadio) => {
+const generateAttributeString = (attribs: { [key: string]: any } = {}) => {
+  return Object.entries(attribs).reduce((acc, [key, value]) => {
+    if (key === "disabled") return acc;
+    return acc + ` ${key}="${value}"`;
+  }, "");
+};
+
+const generateGeneralString = (input: InputText) => {
+  const str = `<input
+    type="${input.type}"
+    id="${input.name}"
+    name="${input.name}"
+    ${generateAttributeString(input.inputProps)}/>`;
+  return str;
+};
+
+const generateRadioString = (input: InputRadio) => {
   let inputRadioString = "";
-  inputRadio.options.forEach((option) => {
+  input.options.forEach((option) => {
     inputRadioString += `
       <div class="df__radio-group">
         <input type="radio" id="${option.inputProps.id}" name="${option.inputProps.name}" value="${option.inputProps.value}" />
@@ -137,19 +157,19 @@ const generateRadioString = (inputRadio: InputRadio) => {
   return inputRadioString;
 };
 
-const generateCheckboxString = (checkbox: InputCheckbox) => {
+const generateCheckboxString = (input: InputCheckbox) => {
   const checkboxString = `
     <div class="df__checkbox-group">
-      <input type="checkbox" id="${checkbox.inputProps.id}" name="${checkbox.inputProps.name}" value="${checkbox.inputProps.value}" />
-      <label for="${checkbox.inputProps.id}">${checkbox.label}</label>
+      <input type="checkbox" id="${input.inputProps.id}" name="${input.inputProps.name}" value="${input.inputProps.value}" />
+      <label for="${input.inputProps.id}">${input.label}</label>
     </div>
   `;
   return checkboxString;
 };
 
-const generateSelectString = (select: InputSelect) => {
-  let selectString = "<select>";
-  select.options.forEach((option) => {
+const generateSelectString = (input: InputSelect) => {
+  let selectString = `<select id="${input.name}"> name="${input.name}">`;
+  input.options.forEach((option) => {
     selectString += `
       <option value="${option.value}">${option.label}</option>
     `;
@@ -159,34 +179,45 @@ const generateSelectString = (select: InputSelect) => {
 };
 
 export const generateInputString = (
-  input: ReturnInputItemByType<ElementType>,
-  index: number
+  input: ReturnInputItemByType<ElementType>
 ): string => {
   if (!input.name) return "";
 
   const generatorByType: TypeDictionary<(arg?: any) => string> = {
-    text: () => `<input type="text" />`,
-    number: () => `<input type="number" />`,
-    date: () => `<input type="date" />`,
-    time: () => `<input type="time" />`,
+    text: generateGeneralString,
+    number: generateGeneralString,
+    date: generateGeneralString,
+    time: generateGeneralString,
     radio: generateRadioString,
     checkbox: generateCheckboxString,
     select: generateSelectString,
   };
 
   const inputString =
-    generatorByType[input.type]?.(input) ?? generatorByType["text"]!();
+    generatorByType[input.type]?.(input) ?? generatorByType["text"]!(input);
 
   const formGroupString = `
-    <div data-index="${index}" class="df__form-group">
+    <div
+      class="df__form-group"
+      data-index="${input.index}"
+      data-type="${input.type}"
+      data-name="${input.name}"
+    >
       <div class="df__form-group__title">
         <label title="${input.name}">${input.label}</label>
         <span class="df__form-group__type">(${input.type})</span>
       </div>
       <div class="df__form-item-wrapper">
-        <select data-value-set-type-index="${index}" class="df__value-set-type" name="valueSetType-${input.name}">
-          <option value="auto" selected>auto</option>
-          <option value="fixed">fixed</option>
+        <select data-value-set-type="true" class="df__value-set-type">
+          <option value="auto" ${
+            input.valueSetType === "auto" ? "selected" : ""
+          }>auto</option>
+          <option value="fixed" ${
+            input.valueSetType === "fixed" ? "selected" : ""
+          }>fixed</option>
+          <option value="disabled" ${
+            input.valueSetType === "disabled" ? "selected" : ""
+          }>disabled</option>
         </select>
         ${inputString}
       </div>

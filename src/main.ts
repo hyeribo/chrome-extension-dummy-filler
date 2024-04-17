@@ -2,8 +2,14 @@ import $ from "jquery";
 import { load } from "cheerio";
 import _ from "lodash";
 
-import { ActionType, ElementType, ReturnInputItemByType } from "./types";
+import {
+  ActionType,
+  ElementType,
+  ReturnInputItemByType,
+  ValueSetType,
+} from "./types";
 import { parseFormItem, generateInputString } from "./form-utils";
+import random from "./random";
 
 class Main {
   tabId?: number;
@@ -45,7 +51,7 @@ class Main {
     $("#df__btn--clear-items").on("click", () => this.handleClearItems());
     $("#df__btn--generate").on("click", () => this.handleGenerate());
     $("#df__btn--apply").on("click", () => this.handleApply());
-    $("#df__form-items").on("change", (e) => this.handleChangeItemValue(e));
+    $("#df__form-items").on("change", (e) => this.handleChangeFormItem(e));
   }
 
   async loadStorageData() {
@@ -71,7 +77,7 @@ class Main {
     const btnSelectArea = $("#df__btn--select-area");
     const btnClearArea = $("#df__btn--clear-area");
     const btnClearItems = $("#df__btn--clear-items");
-    const btnBottom = $(".df__btn-container--apply");
+    const btnBottom = $(".df__bottom");
     const msgScanResult = $(".df__msg--scan-result");
 
     switch (action.type) {
@@ -110,10 +116,8 @@ class Main {
         this.emptyItems();
         break;
       case "POPUP/GENERATE":
-        this.handleGenerateData();
         break;
       case "POPUP/APPLY":
-        this.handleApplyData();
         break;
     }
   }
@@ -136,6 +140,7 @@ class Main {
       inputs,
       labels,
     });
+    console.log("validItems", validItems);
     this.items = validItems;
     this.save();
 
@@ -150,23 +155,58 @@ class Main {
   }
 
   handleGenerate() {
+    console.log("generate");
+    this.items.forEach((item, i) => {
+      if (item.type === "text") {
+        const randomValue = random.text(item.inputProps);
+        console.log("text :: ", item.name, randomValue);
+      } else if (item.type === "number") {
+        const randomValue = random.number(
+          item.inputProps.min || 0,
+          item.inputProps.max || 1000
+        );
+        console.log("number :: ", item.name, randomValue);
+      } else if (item.type === "date") {
+        const randomValue = random.date();
+        console.log("date :: ", item.name, randomValue);
+      } else if (item.type === "time") {
+        const randomValue = random.time();
+        console.log("time :: ", item.name, randomValue);
+      } else if (item.type === "radio") {
+        const randomValue = random.radio(item.options);
+        console.log("radio :: ", item.name, randomValue);
+      } else if (item.type === "checkbox") {
+        const randomValue = random.checkbox();
+        console.log("checkbox :: ", item.name, randomValue);
+      } else if (item.type === "select") {
+        const randomValue = random.select(item.options);
+        console.log("select :: ", item.name, randomValue);
+      }
+    });
     this.changeViewByAction({ type: "POPUP/GENERATE" });
   }
 
   handleApply() {
+    console.log("apply");
     this.changeViewByAction({ type: "POPUP/APPLY" });
   }
 
-  handleChangeItemValue(
+  handleChangeFormItem(
     e: JQuery.ChangeEvent<HTMLElement, undefined, HTMLElement, HTMLElement>
   ) {
-    console.log("form item changed ===>", e);
-    const changedItemIndex = e.target.dataset.valueSetTypeIndex;
-    if (!changedItemIndex) return;
-    const index = +changedItemIndex;
-    console.log("form item changed index ===>", index);
-    // console.log("form item changed ===> value", e.target.value);
-    // items[index].name
+    const target = e.target as HTMLInputElement;
+    const changedFormGroup =
+      $(target).parent().closest(".df__form-group")?.[0] ?? null;
+    const { index, type, name } = changedFormGroup.dataset;
+    console.log("changed =>", { index, type, name });
+
+    const isValueSetType = target.dataset.valueSetType === "true";
+    if (isValueSetType) {
+      this.items[+index!].valueSetType = target.value as ValueSetType;
+      this.save();
+      return;
+    } else {
+    }
   }
   // --- event handler END ---
 
@@ -174,12 +214,10 @@ class Main {
     if (!this.items?.length) {
       return;
     }
-    this.items.forEach?.(
-      (item: ReturnInputItemByType<ElementType>, i: number) => {
-        const inputString = generateInputString(item, i);
-        this.$itemContainer.append(inputString);
-      }
-    );
+    this.items.forEach?.((item: ReturnInputItemByType<ElementType>) => {
+      const inputString = generateInputString(item);
+      this.$itemContainer.append(inputString);
+    });
   }
 
   emptyItems() {

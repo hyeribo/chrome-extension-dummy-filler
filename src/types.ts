@@ -21,9 +21,10 @@ export type TypeDictionary<T> = {
   [type in ElementType]?: T;
 };
 
-export type ValueSetType = "auto" | "fixed";
+export type ValueSetType = "auto" | "fixed" | "disabled";
 
 export interface InputItem<T extends ElementType> {
+  index: number;
   type: T;
   valueSetType: ValueSetType;
   isUsed: boolean;
